@@ -19,11 +19,11 @@ def open_link(path):
         return bs
 
 
-def save_article(article):
+def save_article(bs):
     """Accepts BS object. Save text of the article in the cuttent dirrectory"""
     try:
-        header = article.find('h1', {'class':'title pg-title'})
-        texts = article.find(id='article-content').find_all('p')
+        header = bs.find('h1', {'class':'title pg-title'})
+        texts = bs.find(id='article-content').find_all('p')
         file_name = header.text.strip('\n') + ".txt"
         with open(file_name, "w") as f:
             for paragraph in texts:
@@ -44,14 +44,20 @@ def get_links(bs):
 
 
 if __name__ == '__main__':
+    # Collect all links
+    seen = set()
     base_page = "https://www.radiosvoboda.org"
-    starting_page = open_link(base_page)
-    articles, links = get_links(starting_page)
-    for article in articles:
-        full_path = urljoin(base_page, article)
-        page = open_link(full_path)
-        save_article(page)
 
+    page = open_link(base_page)
+    links = get_links(page)
+
+    re_external = re.compile('^(http|https)')
+    external_links = list(filter(re_external.match, links))
+
+    re_internal = re.compile('^(https^|http^|#^|\/).*')
+    internal_links = list(filter(re_internal.match, links))
+
+    print(internal_links)
     # Define links to explore
 ## Find articles
 ## Find trash links
