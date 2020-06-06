@@ -35,18 +35,12 @@ def save_article(article):
 
 
 def get_links(bs):
-    """Accepts Beautifulsoup object, returns 2 sets [articles], [links_to_check]"""
-    list_articles = []
-    list_to_check = []
-    for link in bs.find_all('a', href=re.compile('^(\/a/)')):
+    """Accepts Beautifulsoup object, returns set of links"""
+    links = set()
+    for link in bs.find_all('a'):
         if 'href' in link.attrs:
-            list_articles.append(link['href'])
-
-    for link in bs.find_all(href=re.compile("^(\/p\/|\/z\/)")):
-       if 'href' in link.attrs:
-           list_to_check.append(link['href'])
-
-    return set(list_articles), set(list_to_check)
+            links.add(link['href'])
+    return set(links)
 
 
 if __name__ == '__main__':
