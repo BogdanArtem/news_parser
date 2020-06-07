@@ -1,4 +1,4 @@
-from urllib.parse import urljoin
+from urllib.parse import urljoin, quote
 from urllib.request import urlopen
 from urllib.error import HTTPError, URLError
 from bs4 import BeautifulSoup
@@ -15,6 +15,8 @@ def open_link(path):
         print(e)
     except URLError:
         print("The server could not be found")
+    except UnicodeEncodeError:
+        print(f"Non unicode path! {path} is skipped ")
     else:
         print(f"{path} is opened!")
         return bs
@@ -44,39 +46,38 @@ def get_links(bs):
     return set(links)
 
 
-if __name__ == '__main__':
-    # Collect all links
-    seen = set()
-    external_links = set()
-    internal_links = set()
-    articles = set()
+def parse_links(links, re_internal, re_external, base_link):
+    external_links = set(filter(re_external.match, links))
+    internal_links = set(filter(re_internal.match, links))
+    articles = set(filter(re_articles.match, links))
+    full_internal_links = set([urljoin(base_link, x) for x in internal_links])
+    return full_internal_links, external_links
 
+
+if __name__ == '__main__':
+    # Set up filters to scan a website
     re_external = re.compile('^(http|https)')
     re_internal = re.compile('^(https^|http^|#^|\/).*')
     re_articles = re.compile('^\/a\/.*')
 
-    def find_all_links(base_page):
-        global seen
-        global external_links
-        global internal_links
-        global articles
+    # First iteration
+    base_link = "https://www.radiosvoboda.org"
+    main = open_link(base_link)
+    links = get_links(main)
+    internal_links, external_links = parse_links(links, re_internal, re_external, base_link)
 
-        page = open_link(base_page)
-        seen.add(base_page)
-        links = get_links(page)
-
-        external_links = (external_links | set(filter(re_external.match, links)))
-        internal_links = (internal_links | set(filter(re_internal.match, links)))
-        articles = (articles | set(filter(re_articles.match, links)))
-
-        if internal_links - seen == set():
-            print("Reached the base case, returning...")
-        else:
-            for link in internal_links:
-                full_path = urljoin(base_page, link)
-                if full_path not in seen:
-                    find_all_links(full_path)
-
-
-    find_all_links("https://www.radiosvoboda.org")
-    print(articles)
+    seen = set()
+    to_check = set(internal_links)
+    while to_check != set():
+        print("-"*50)
+        print(f"Length of seen is {len(seen)}")
+        print(f"Length of unseen is {len(to_check)}")
+        print("-"*50)
+        to_check_copy = to_check.copy()
+        for link in to_check_copy:
+            if link not in seen:
+                page = open_link(link)
+                seen.add(link)
+                to_check.remove(link)
+                links = get_links(page)
+                to_check = (to_check | (parse_links(links, re_internal, re_external, base_link)[0] - seen))
