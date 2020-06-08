@@ -1,6 +1,6 @@
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin, quote
-from urllib.request import urlopen
+import requests
 from urllib.error import HTTPError, URLError
 import re
 import os
@@ -50,8 +50,8 @@ class Crawler:
         """Open the link and return the bs object for that link or None"""
         try:
             print(f"Trying to open {path}....")
-            html = urlopen(path)
-            bs = BeautifulSoup(html.read(), "html.parser")
+            html = requests.get(path)
+            bs = BeautifulSoup(html.content, "html.parser")
         except HTTPError as e:
             print(e)
         except URLError:
