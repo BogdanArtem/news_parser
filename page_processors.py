@@ -1,3 +1,5 @@
+import os
+from datetime import date
 from abc import abstractmethod
 from bs4 import BeautifulSoup
 
@@ -26,9 +28,20 @@ class PageProcesssor:
         else:
             return False
 
+    def initialize_dir(self):
+        """Create new directory with current date as name and make it a workdir"""
+        folder_name = date.today().__str__()
+
+        if folder_name not in os.getcwd():
+            if not os.path.exists(os.path.join(os.getcwd(), folder_name)):
+                os.mkdir(folder_name)
+                os.chdir(folder_name)
+            os.chdir(folder_name)
+
     def process(self, bs, link):
         """Combine all the previous methods to process the page"""
         try:
+            self.initialize_dir()
             self.save(*self.parce(bs, link))
         except TypeError:
             print("Skiped this link for saving...")
