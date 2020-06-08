@@ -65,12 +65,15 @@ class Crawler:
 
     def get_links(self, bs):
         """Accepts Beautifulsoup object, returns set of links"""
-        links = set()
-        for link in bs.find_all('a'):
-            if 'href' in link.attrs:
-                links.add(link['href'])
-        return set(links)
-
+        if bs is not None:
+            links = set()
+            for link in bs.find_all('a'):
+                if 'href' in link.attrs:
+                    links.add(link['href'])
+            return set(links)
+        else:
+            print("Can't find links for None")
+            return set()
 
     def parse_links(self, links, re_internal, re_external, base_link):
         external_links = set(filter(re_external.match, links))
