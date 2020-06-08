@@ -38,7 +38,7 @@ class Crawler:
 
                     #do some processing on the page
                     if page_processor:
-                        page_processor(page, link)
+                        page_processor.process(page, link)
 
                     seen.add(link)
                     to_check.remove(link)
@@ -92,6 +92,8 @@ class Crawler:
 
 if __name__ == '__main__':
     crawler = Crawler()
-    crawler.crawl("https://www.radiosvoboda.org")
+
+    svoboda_processor = SvobodaProcessor(re.compile('.*\/a\/.*'))
+    crawler.crawl("https://www.radiosvoboda.org", svoboda_processor)
 
 
